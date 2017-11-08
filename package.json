@@ -1,0 +1,15 @@
+{
+  "name": "pixi-hammer",
+  "version": "0.0.1",
+  "description": "Use Hammerjs with pixi",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "hammerjs",
+    "pixi"
+  ],
+  "author": "Paul Young <thammin@live.co.uk> (https://github.com/thammin)",
+  "license": "MIT"
+}
