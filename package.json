@@ -2,6 +2,7 @@
   "name": "pixi-hammer",
   "version": "0.0.1",
   "description": "Use Hammerjs with pixi",
+  "repository": "thammin/pixi-hammer",
   "main": "index.js",
   "scripts": {
     "start": "budo example.js -l -o",
