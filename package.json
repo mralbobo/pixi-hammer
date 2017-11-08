@@ -15,8 +15,7 @@
   "author": "Paul Young <thammin@live.co.uk> (https://github.com/thammin)",
   "license": "MIT",
   "dependencies": {
-    "hammerjs": "^2.0.8",
-    "lodash": "^4.17.4"
+    "hammerjs": "^2.0.8"
   },
   "devDependencies": {
     "budo": "^10.0.4",

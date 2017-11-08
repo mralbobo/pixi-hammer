@@ -14,7 +14,14 @@ app.stage.addChild(world);
 var rect = new PIXI.Graphics();
 rect.beginFill(0x000000);
 rect.drawRect(100, 100, 100, 100);
+rect.priority = 1;
 app.stage.addChild(rect);
+
+var rect2 = new PIXI.Graphics();
+rect2.beginFill(0x0000FF);
+rect2.drawRect(150, 50, 100, 100);
+rect2.priority = 2;
+app.stage.addChild(rect2);
 
 /**
  * connect events
@@ -26,7 +33,11 @@ c.listen(world, 'pan', function(e) {
 });
 
 c.listen(rect, 'tap', function(e) {
-  console.log('tapping on the rect!');
+  console.log('tapping on the rect1!');
+});
+
+c.listen(rect2, 'tap', function(e) {
+  console.log('tapping on the rect2!');
 });
 
 c.start();

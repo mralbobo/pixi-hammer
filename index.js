@@ -1,4 +1,3 @@
-var _ = require('lodash');
 var Hammer = require('hammerjs');
 
 /**
@@ -43,34 +42,39 @@ var Connector = function(app) {
 
   // private handler for every hammer event
   self._handler = function(e) {
-    e = Connector.normalizePointer(e, self._offset.x, self._offset.y);
+    Connector.normalizePointer(e, self._offset.x, self._offset.y);
     // sugar sub method to ending propagations
     e.end = self._mc.stop.bind(self._mc, true);
-    var y = _.sortBy(
-      self._listeners[e.type],
-      _.partial(_.get, _, 'instance.priority', -1)
-    );
-
+    
+    var y = self._listeners[e.type].sort(function(a, b) {
+      return (a.instance.priority || -1) > (b.instance.priority || -1)
+    });
+    
     // check hitArea or just using native `containsPoint`
-    var target = _.findLast(y, function(listener) {
+    var target;
+    for (var i = y.length - 1; i >= 0; i--) {
+      var listener = y[i];
       if (!self.isHitable(listener.instance)) {
-        return false;
+        continue;
       }
 
       if (listener.instance.hitArea) {
-        listener.instance.worldTransform.applyInverse(
-          e.center,
-          self._tempPoint
-        );
-        return _.invoke(
-          listener.instance.hitArea,
-          'containsPoint',
-          self._tempPoint
-        );
+        listener.instance.worldTransform.applyInverse(e.center, self._tempPoint);
+        if (listener.instance.hitArea.containsPoint(self._tempPoint)) {
+          target = listener;
+          break;
+        } else {
+          continue;
+        }
       } else {
-        return _.invoke(listener.instance, 'containsPoint', e.center);
+        if (listener.instance.containsPoint(e.center)) {
+          target = listener;
+          break;
+        } else {
+          continue;
+        }
       }
-    });
+    }
     target && target.callback.call(target.instance, e);
   };
 };
@@ -90,53 +94,52 @@ var Connector = function(app) {
  */
 Connector.prototype.listen = function(instance, event, option, callback) {
   var self = this;
-  if (_.isUndefined(callback)) {
+  if (callback === undefined) {
     callback = option;
     option = undefined;
   }
 
   var l = (self._listeners[event] = self._listeners[event] || []);
-  var keys = ['priority', 'instance', 'callback'];
 
   // set options for recoginzers
   if (option) {
-    var optionKey = _.includes(event, '-')
-      ? _.first(_.split(event, '-'))
-      : self.getRecognizerType(event);
-    _.set(self._options, optionKey, option);
+    var optionKey = event.includes('-') ? event.split('-')[0] : self.getRecognizerType(event);
+    self._options[optionKey] = option;
   }
 
   // set listeners for events
-  var info = _.zipObject(keys, [
-    _.get(instance, 'priority', 0),
-    instance,
-    callback
-  ]);
-  var sortedIndex = _.sortedIndexBy(l, info, 'priority');
-  self._listeners[event] = _.concat(
-    _.slice(l, 0, sortedIndex),
-    info,
-    _.slice(l, sortedIndex, _.size(l))
-  );
+  var info = {
+    priority: instance.priority || 0,
+    instance: instance,
+    callback: callback
+  };
+  
+  var sortedIndex = l.length;
+  for (var i = 0; i < l.length; i++) {
+    if (l[i].priority >= info.priority) {
+      sortedIndex = i;
+      break;
+    }
+  }
+  self._listeners[event] = [].concat(l.slice(0, sortedIndex)).concat(info).concat(l.slice(sortedIndex, l.length));
 
   // for event added after `start` and dint have reusable recognizer
-  if (
-    self._isStart &&
-    !_.isEqual(event, 'hammer.input') &&
-    !self._mc.get(event)
-  ) {
+  if (self._isStart && event !== 'hammer.input' && !self._mc.get(event)) {
     if (self.isCustomEvent(event)) {
       self.createCustomRecognizer(event);
     } else {
       self.createRecognizer(self.getRecognizerType(event));
     }
-    if (!_.has(self._mc.handlers, event)) {
+    if (!self._mc.handlers[event]) {
       self._mc.on(event, self._handler);
       // run related dependencies stack again
-      _.chain(self._dependencies)
-        .filter(_.partial(_.includes, _, event))
-        .each(_.bind(_.spread(self.setDependency), self))
-        .value();
+      self._dependencies
+        .filter(function(dep) {
+          return dep.includes(event);
+        })
+        .forEach(function(dep) {
+          self.setDependency.apply(self, dep);
+        });
     }
   }
 };
@@ -158,32 +161,31 @@ Connector.prototype.start = function() {
   var self = this;
   self._isStart = true;
 
-  // initialize normal recognizers
-  _.chain(self._listeners)
-    .keys()
-    .reject(self.isCustomEvent)
-    // return the valid name of recognizer constructor
-    .map(_.bind(self.getRecognizerType, self))
-    .compact()
-    .uniq()
-    .each(_.bind(self.createRecognizer, self))
-    .value();
-
-  // initialize custom recognizers
-  _.chain(self._listeners)
-    .keys()
-    .filter(self.isCustomEvent)
-    .groupBy(self.getCustomName)
-    .each(_.bind(self.createCustomRecognizer, self))
-    .value();
+  var temp = [];
+  for (var key in self._listeners) {
+    if (self.isCustomEvent(key)) {
+      // initialize custom recognizers
+      var customName = self.getCustomName(key);
+      if (!temp.includes(customName)) {
+        temp.push(customName);
+        self.createCustomRecognizer(key);
+      }
+    } else {
+      // initialize normal recognizers
+      var type = self.getRecognizerType(key);
+      self.createRecognizer(type);
+    }
+  }
 
   // run the dependecies stack
-  _.each(self._dependencies, _.bind(_.spread(self.setDependency), self));
-
-  _.each(self._listeners, function(callbacks, type) {
-    // listen to events
-    self._mc.on(type, self._handler);
+  self._dependencies.forEach(function(dep) {
+    self.setDependency.apply(self, dep);
   });
+
+  for (var key in self._listeners) {
+    // listen to events
+    self._mc.on(key, self._handler);
+  }
 };
 
 /**
@@ -213,16 +215,12 @@ Connector.prototype.setDependency = function(method, target, baseTarget) {
  */
 Connector.prototype.getRecognizerType = function(event) {
   var self = this;
-  var base = self.isCustomEvent(event)
-    ? _.chain(event)
-        .split('-')
-        .last()
-        .value()
-    : event;
-  return _.find(
-    self.C.recognizers,
-    _.unary(_.partial(_.startsWith, _.upperFirst(base)))
-  );
+  var base = self.isCustomEvent(event) ? event.split('-').pop() : event;
+
+  return self.C.recognizers.find(function(reg) {
+    var name = base[0].toUpperCase() + base.slice(1);
+    return reg.indexOf(name) === 0;
+  });
 };
 
 /**
@@ -231,7 +229,7 @@ Connector.prototype.getRecognizerType = function(event) {
  * @param {String} event
  */
 Connector.prototype.isCustomEvent = function(event) {
-  return _.includes(event, '-');
+  return event.includes('-');
 };
 
 /**
@@ -240,7 +238,7 @@ Connector.prototype.isCustomEvent = function(event) {
  * @param {String} event
  */
 Connector.prototype.getCustomName = function(event) {
-  return _.first(_.split(event, '-'));
+  return event.split('-').shift();
 };
 
 /**
@@ -250,7 +248,7 @@ Connector.prototype.getCustomName = function(event) {
  */
 Connector.prototype.createRecognizer = function(recognizerType) {
   var self = this;
-  var opt = _.get(self._options, recognizerType, {});
+  var opt = self._options[recognizerType] || {};
   self._mc.add(new global.Hammer[recognizerType](opt));
 };
 
@@ -262,18 +260,16 @@ Connector.prototype.createRecognizer = function(recognizerType) {
  */
 Connector.prototype.createCustomRecognizer = function(event) {
   var self = this;
-  var recognizerType = self.getRecognizerType(_.first(event));
+  var recognizerType = self.getRecognizerType(event);
   var customName = self.getCustomName(event);
 
-  var opt = _.get(self._options, customName, {});
+  var opt = {};
+  for (var key in self._options[customName]) {
+    opt[key] = self._options[customName][key];
+  }
+  opt.event = [customName, recognizerType.toLowerCase()].join('-');
 
-  self._mc.add(
-    new global.Hammer[recognizerType](
-      _.assign(opt, {
-        event: _.join([customName, _.lowerFirst(recognizerType)], '-')
-      })
-    )
-  );
+  self._mc.add(new global.Hammer[recognizerType](opt));
 };
 
 /**
@@ -293,7 +289,7 @@ Connector.prototype.isHitable = function(instance) {
   if (!instance.visible) {
     return false;
   }
-  if (_.isEmpty(instance.parent) && !_.isEqual(instance.name, 'stage')) {
+  if (!instance.parent && instance.name !== 'stage') {
     return false;
   }
   if (instance.hitable === false) {
@@ -311,9 +307,10 @@ Connector.prototype.isHitable = function(instance) {
  */
 Connector.prototype.destroy = function() {
   var self = this;
-  _.each(self._listeners, function(callbacks, type) {
-    self._mc.off(type, self._handler);
-  });
+  
+  for (var key in self._listeners) {
+    self._mc.off(key, self._handler);
+  }
   self._mc.destroy();
   self._mc = null;
   self._listeners = {};
@@ -328,14 +325,8 @@ Connector.prototype.destroy = function() {
  * @param {Number} offsetY - top offset from the DOM
  */
 Connector.normalizePointer = function(e, offsetX, offsetY) {
-  offsetX = offsetX || 0;
-  offsetY = offsetY || 0;
-  var normalized = _.cloneDeep(e);
-
-  normalized.center.x = (e.center.x - offsetX);
-  normalized.center.y = (e.center.y - offsetY);
-
-  return normalized;
+  e.center.x = (e.center.x - offsetX || 0);
+  e.center.y = (e.center.y - offsetY || 0);
 }
 
 module.exports = Connector;

@@ -41,7 +41,6 @@ Instead of traverse whole PIXI scene graph, this connector cache listeners to it
 
 ## TODO
 
-- [ ] remove lodash dependency
 - [ ] examples for `stopPropagation` etc 
 - [ ] simplify API (adding listener on demand)
 
