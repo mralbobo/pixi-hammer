@@ -4,6 +4,7 @@
   "description": "Use Hammerjs with pixi",
   "main": "index.js",
   "scripts": {
+    "start": "budo example.js -l -o",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -11,5 +12,13 @@
     "pixi"
   ],
   "author": "Paul Young <thammin@live.co.uk> (https://github.com/thammin)",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "hammerjs": "^2.0.8",
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "budo": "^10.0.4",
+    "pixi.js": "^4.6.0"
+  }
 }
