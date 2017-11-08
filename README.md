@@ -4,9 +4,18 @@ Connect [Hammer.js](http://hammerjs.github.io/) with [PixiJS](http://www.pixijs.
 
 Allow us to use `Hammer.js` gesture recognizer with `PixiJS` instance. 
 
+## Install
+
+```sh
+npm install pixi-hammer
+```
+
 ## Usage
 
 ```js
+var PIXI = require('pixi.js');
+var Connector = require('pixi-hammer');
+
 var app = new PIXI.Application(320, 400);
 // initialize the Connector
 var c = new Connector(app);
