@@ -200,7 +200,7 @@ Connector.prototype.getCustomName = function(event) {
 Connector.prototype.createRecognizer = function(recognizerType) {
   var self = this;
   var opt = self._options[recognizerType] || {};
-  self._mc.add(new global.Hammer[recognizerType](opt));
+  self._mc.add(new Hammer[recognizerType](opt));
 };
 
 /**
@@ -220,7 +220,7 @@ Connector.prototype.createCustomRecognizer = function(event) {
   }
   opt.event = [customName, recognizerType.toLowerCase()].join('-');
 
-  self._mc.add(new global.Hammer[recognizerType](opt));
+  self._mc.add(new Hammer[recognizerType](opt));
 };
 
 /**
