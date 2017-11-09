@@ -1,6 +1,6 @@
 {
   "name": "pixi-hammer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Use Hammerjs with pixi",
   "repository": "thammin/pixi-hammer",
   "main": "index.js",
