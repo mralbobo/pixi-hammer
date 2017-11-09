@@ -170,7 +170,7 @@ Connector.prototype.getRecognizerType = function(event) {
 
   return self.C.recognizers.find(function(reg) {
     var name = base[0].toUpperCase() + base.slice(1);
-    return reg.indexOf(name) === 0;
+    return name.indexOf(reg) === 0;
   });
 };
 
