@@ -25,11 +25,8 @@ var Connector = function(app) {
     y: bound.top
   };
 
-  // listeners with a pair of key(instance's name) and
   self._listeners = {};
   self._options = {};
-  self._dependencies = [];
-  self._isStart = false;
 
   // hammer manager
   self._mc = new Hammer.Manager(canvas);
@@ -42,7 +39,7 @@ var Connector = function(app) {
 
   // private handler for every hammer event
   self._handler = function(e) {
-    Connector.normalizePointer(e, self._offset.x, self._offset.y);
+    self.normalizePointer(e, self._offset.x, self._offset.y);
     // sugar sub method to ending propagations
     e.end = self._mc.stop.bind(self._mc, true);
     
@@ -124,7 +121,7 @@ Connector.prototype.listen = function(instance, event, option, callback) {
   self._listeners[event] = [].concat(l.slice(0, sortedIndex)).concat(info).concat(l.slice(sortedIndex, l.length));
 
   // for event added after `start` and dint have reusable recognizer
-  if (self._isStart && event !== 'hammer.input' && !self._mc.get(event)) {
+  if (event !== 'hammer.input' && !self._mc.get(event)) {
     if (self.isCustomEvent(event)) {
       self.createCustomRecognizer(event);
     } else {
@@ -132,14 +129,6 @@ Connector.prototype.listen = function(instance, event, option, callback) {
     }
     if (!self._mc.handlers[event]) {
       self._mc.on(event, self._handler);
-      // run related dependencies stack again
-      self._dependencies
-        .filter(function(dep) {
-          return dep.includes(event);
-        })
-        .forEach(function(dep) {
-          self.setDependency.apply(self, dep);
-        });
     }
   }
 };
@@ -155,41 +144,6 @@ Connector.prototype.getManager = function() {
 
 /**
  * @description
- * start binding event listener
- */
-Connector.prototype.start = function() {
-  var self = this;
-  self._isStart = true;
-
-  var temp = [];
-  for (var key in self._listeners) {
-    if (self.isCustomEvent(key)) {
-      // initialize custom recognizers
-      var customName = self.getCustomName(key);
-      if (!temp.includes(customName)) {
-        temp.push(customName);
-        self.createCustomRecognizer(key);
-      }
-    } else {
-      // initialize normal recognizers
-      var type = self.getRecognizerType(key);
-      self.createRecognizer(type);
-    }
-  }
-
-  // run the dependecies stack
-  self._dependencies.forEach(function(dep) {
-    self.setDependency.apply(self, dep);
-  });
-
-  for (var key in self._listeners) {
-    // listen to events
-    self._mc.on(key, self._handler);
-  }
-};
-
-/**
- * @description
  * wrapper to call `recognizeWith|requireFailure` methods of `target` base on `baseTarget`
  * cache and run if this is called before `this.start`
  *
@@ -198,14 +152,11 @@ Connector.prototype.start = function() {
  */
 Connector.prototype.setDependency = function(method, target, baseTarget) {
   var self = this;
-  if (self._isStart) {
-    var t = self._mc.get(target);
-    var b = self._mc.get(baseTarget);
-    // skip silently if recognizer is not found
-    t && b && t[method](b);
-  } else {
-    self._dependencies.push([method, target, baseTarget]);
-  }
+
+  var t = self._mc.get(target);
+  var b = self._mc.get(baseTarget);
+  // skip silently if recognizer is not found
+  t && b && t[method](b);
 };
 
 /**
@@ -324,7 +275,7 @@ Connector.prototype.destroy = function() {
  * @param {Number} offsetX - left offset from the DOM
  * @param {Number} offsetY - top offset from the DOM
  */
-Connector.normalizePointer = function(e, offsetX, offsetY) {
+Connector.prototype.normalizePointer = function(e, offsetX, offsetY) {
   e.center.x = (e.center.x - offsetX || 0);
   e.center.y = (e.center.y - offsetY || 0);
 }

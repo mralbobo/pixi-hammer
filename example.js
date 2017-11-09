@@ -32,6 +32,12 @@ c.listen(world, 'pan', function(e) {
   console.log('panning on the world!');
 });
 
+c.listen(rect2, 'double-tap', {
+  taps: 2
+}, function(e) {
+  console.log('double tap on the rect2!');
+});
+
 c.listen(rect, 'tap', function(e) {
   console.log('tapping on the rect1!');
 });
@@ -40,4 +46,5 @@ c.listen(rect2, 'tap', function(e) {
   console.log('tapping on the rect2!');
 });
 
-c.start();
+c.setDependency('recognizeWith', 'tap', 'double-tap');
+c.setDependency('requireFailure', 'tap', 'double-tap');

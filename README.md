@@ -30,9 +30,6 @@ app.stage.addChild(rect);
 c.listen(rect, 'pinch', function(e) {
   console.log('pinching on the rect!');
 });
-
-// start the Connector
-c.start();
 ```
 
 ## How it works
@@ -42,7 +39,6 @@ Instead of traverse whole PIXI scene graph, this connector cache listeners to it
 ## TODO
 
 - [ ] examples for `stopPropagation` etc 
-- [ ] simplify API (adding listener on demand)
 
 ## License
 
