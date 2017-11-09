@@ -120,16 +120,16 @@ Connector.prototype.listen = function(instance, event, option, callback) {
   }
   self._listeners[event] = [].concat(l.slice(0, sortedIndex)).concat(info).concat(l.slice(sortedIndex, l.length));
 
-  // for event added after `start` and dint have reusable recognizer
   if (event !== 'hammer.input' && !self._mc.get(event)) {
     if (self.isCustomEvent(event)) {
       self.createCustomRecognizer(event);
     } else {
       self.createRecognizer(self.getRecognizerType(event));
     }
-    if (!self._mc.handlers[event]) {
-      self._mc.on(event, self._handler);
-    }
+  }
+
+  if (!self._mc.handlers[event]) {
+    self._mc.on(event, self._handler);
   }
 };
 

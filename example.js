@@ -28,6 +28,14 @@ app.stage.addChild(rect2);
  */
 var c = new Connector(app);
 
+c.listen(world, 'hammer.input', function(e) {
+  if (e.isFirst) {
+    console.log('this is first touch!');
+  } else if (e.isFinal) {
+    console.log('this is final touch!')
+  }
+});
+
 c.listen(world, 'pan', function(e) {
   console.log('panning on the world!');
 });
