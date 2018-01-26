@@ -17,13 +17,7 @@ var Connector = function(app) {
 
   stage.name = 'stage';
 
-  // offset information of this canvas
-  var bound = canvas.getBoundingClientRect();
-
-  self._offset = {
-    x: bound.left,
-    y: bound.top
-  };
+  self.updateCache(canvas);
 
   self._listeners = {};
   self._options = {};
@@ -278,6 +272,23 @@ Connector.prototype.destroy = function() {
 Connector.prototype.normalizePointer = function(e, offsetX, offsetY) {
   e.center.x = (e.center.x - offsetX || 0);
   e.center.y = (e.center.y - offsetY || 0);
+}
+
+/**
+ * @description
+ * recache the canvas bound. call this when the canvas size changed
+ * @param {Element?} canvas 
+ */
+Connector.prototype.updateCache = function(canvas) {
+  var self = this;
+
+  // offset information of this canvas
+  var bound = (canvas || self._mc.element).getBoundingClientRect();
+  
+  self._offset = {
+    x: bound.left,
+    y: bound.top
+  };
 }
 
 module.exports = Connector;
