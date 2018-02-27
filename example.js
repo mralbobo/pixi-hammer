@@ -5,6 +5,8 @@ var app = new PIXI.Application(320, 400, {
   backgroundColor: 0x1099bb
 });
 document.body.appendChild(app.view);
+app.view.style.position = "absolute";
+app.view.style.top = "400px";
 
 var world = new PIXI.Graphics();
 world.beginFill(0xFF3300);

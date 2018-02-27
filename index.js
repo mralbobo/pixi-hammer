@@ -270,8 +270,10 @@ Connector.prototype.destroy = function() {
  * @param {Number} offsetY - top offset from the DOM
  */
 Connector.prototype.normalizePointer = function(e, offsetX, offsetY) {
-  e.center.x = (e.center.x - offsetX || 0);
-  e.center.y = (e.center.y - offsetY || 0);
+  if(e.type === "hammer.input"){
+    e.center.x = (e.center.x - offsetX || 0);
+    e.center.y = (e.center.y - offsetY || 0);
+  }
 }
 
 /**
