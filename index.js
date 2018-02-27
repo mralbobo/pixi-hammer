@@ -23,7 +23,7 @@ var Connector = function(appView, interactionManager, preInitedHammer) {
 	// hammer manager
 	if(preInitedHammer){ self._mc = preInitedHammer; }
 	else{ self._mc = new Hammer.Manager(canvas); }
-	console.log('_mc', self._mc);
+	// console.log('_mc', self._mc);
 	
 	self.getPixiTarget = function(center){
 		var newCenter = self.normalizePoint(center);
