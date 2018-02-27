@@ -6,6 +6,7 @@ Allow us to use `Hammer.js` gesture recognizer with `PixiJS` instance.
 
 ## Install
 
+TODO - put on npm
 ```sh
 npm install pixi-hammer
 ```
@@ -18,7 +19,7 @@ var Connector = require('pixi-hammer');
 
 var app = new PIXI.Application(320, 400);
 // initialize the Connector
-var c = new Connector(app);
+var c = new Connector(app.view, app.renderer.plugins.interaction);
 
 // assume we have a PIXI instance
 var rect = new PIXI.Graphics();
@@ -27,18 +28,17 @@ rect.drawRect(100, 100, 100, 100);
 app.stage.addChild(rect);
 
 // listen hammer.js event from that instance
-c.listen(rect, 'pinch', function(e) {
+c.on('hammer-pinch', function(e){
   console.log('pinching on the rect!');
 });
 ```
 
 ## How it works
 
-Instead of traverse whole PIXI scene graph, this connector cache listeners to its own stack and only check the instance itself and up to the root.
+A very light mapping to hammer. Defer to the pixi interactionManager as often as possible.
 
 ## TODO
 
-- [ ] examples for `stopPropagation` etc 
 
 ## License
 
