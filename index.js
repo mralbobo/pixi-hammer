@@ -51,7 +51,7 @@ var Connector = function(app) {
 
       if (listener.instance.hitArea) {
         listener.instance.worldTransform.applyInverse(e.center, self._tempPoint);
-        if (listener.instance.hitArea.containsPoint(self._tempPoint)) {
+        if (listener.instance.hitArea.contains(self._tempPoint.x, self._tempPoint.y)) {
           target = listener;
           break;
         } else {

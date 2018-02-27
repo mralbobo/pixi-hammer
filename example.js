@@ -8,22 +8,35 @@ document.body.appendChild(app.view);
 app.view.style.position = "absolute";
 app.view.style.top = "400px";
 
+
+
+
 var world = new PIXI.Graphics();
 world.beginFill(0xFF3300);
 world.drawRect(0, 0, 1000, 1000);
 app.stage.addChild(world);
 
+var container = new PIXI.Container();
+container.hitArea = new PIXI.Rectangle(0,0, 320, 400);
+app.stage.addChild(container);
+
+
 var rect = new PIXI.Graphics();
 rect.beginFill(0x000000);
 rect.drawRect(100, 100, 100, 100);
-rect.priority = 1;
+// rect.priority = 1;
 app.stage.addChild(rect);
 
 var rect2 = new PIXI.Graphics();
 rect2.beginFill(0x0000FF);
 rect2.drawRect(150, 50, 100, 100);
-rect2.priority = 2;
+// rect2.priority = 2;
 app.stage.addChild(rect2);
+
+
+
+
+
 
 /**
  * connect events
@@ -54,6 +67,10 @@ c.listen(rect, 'tap', function(e) {
 
 c.listen(rect2, 'tap', function(e) {
   console.log('tapping on the rect2!');
+});
+
+c.listen(container, 'tap', (event)=>{
+	console.log('tap on pixi.container');
 });
 
 c.setDependency('recognizeWith', 'tap', 'double-tap');
