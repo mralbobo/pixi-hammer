@@ -33,7 +33,7 @@ var Connector = function(app) {
 
   // private handler for every hammer event
   self._handler = function(e) {
-    self.normalizePointer(e, self._offset.x, self._offset.y);
+    e.type === 'hammer.input' && self.normalizePointer(e, self._offset.x, self._offset.y);
     // sugar sub method to ending propagations
     e.end = self._mc.stop.bind(self._mc, true);
     
@@ -49,9 +49,13 @@ var Connector = function(app) {
         continue;
       }
 
-      if (listener.instance.hitArea) {
+      if (listener.instance.hammerHitArea) {
+        var hitArea = listener.instance.hammerHitArea;
         listener.instance.worldTransform.applyInverse(e.center, self._tempPoint);
-        if (listener.instance.hitArea.containsPoint(self._tempPoint)) {
+        if (hitArea.contains && hitArea.contains(self._tempPoint.x, self._tempPoint.y)) {
+          target = listener;
+          break;
+        } else if (hitArea.containsPoint && hitArea.containsPoint(self._tempPoint)) {
           target = listener;
           break;
         } else {
